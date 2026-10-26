@@ -1,15 +1,56 @@
 {
-  "source": "https://mybank.icbc.com.cn/icbc/newperbank/perbank3/gold/realgold_query_out.jsp",
+  "source": "https://www.huilvbiao.com/gold/tz_ruyi",
+  "product": "工商银行如意金条购买参考价",
   "history": [
     {
-      "date": "2026-10-26",
-      "price": 861.41,
-      "time": "昨日收盘"
+      "date": "2026-10-15",
+      "price": 912.73,
+      "time": "每日挂牌"
     },
     {
-      "date": "2026-10-27",
-      "price": 864.0,
-      "time": "04:33"
+      "date": "2026-10-16",
+      "price": 914.83,
+      "time": "每日挂牌"
+    },
+    {
+      "date": "2026-10-17",
+      "price": 914.68,
+      "time": "每日挂牌"
+    },
+    {
+      "date": "2026-10-19",
+      "price": 918.19,
+      "time": "每日挂牌"
+    },
+    {
+      "date": "2026-10-20",
+      "price": 907.55,
+      "time": "每日挂牌"
+    },
+    {
+      "date": "2026-10-21",
+      "price": 905.03,
+      "time": "每日挂牌"
+    },
+    {
+      "date": "2026-10-22",
+      "price": 904.04,
+      "time": "每日挂牌"
+    },
+    {
+      "date": "2026-10-23",
+      "price": 875.48,
+      "time": "每日挂牌"
+    },
+    {
+      "date": "2026-10-24",
+      "price": 877.36,
+      "time": "每日挂牌"
+    },
+    {
+      "date": "2026-10-26",
+      "price": 874.59,
+      "time": "每日挂牌"
     }
   ]
 }
