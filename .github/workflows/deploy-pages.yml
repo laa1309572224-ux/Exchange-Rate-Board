@@ -3,6 +3,8 @@ name: Deploy dashboard to GitHub Pages
 on:
   push:
     branches: [main]
+  schedule:
+    - cron: "*/30 * * * *"
   workflow_dispatch:
 
 permissions:
@@ -22,9 +24,16 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
+      - uses: actions/cache@v4
+        with:
+          path: gold_data.json
+          key: gold-${{ github.run_id }}
+          restore-keys: gold-
+      - run: python update_gold.py
       - run: |
           mkdir site
           cp "汇率监控APP.html" site/index.html
+          cp gold_data.json site/gold_data.json
           touch site/.nojekyll
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v4

@@ -1,0 +1,15 @@
+{
+  "source": "https://mybank.icbc.com.cn/icbc/newperbank/perbank3/gold/realgold_query_out.jsp",
+  "history": [
+    {
+      "date": "2026-10-26",
+      "price": 861.41,
+      "time": "昨日收盘"
+    },
+    {
+      "date": "2026-10-27",
+      "price": 864.0,
+      "time": "04:33"
+    }
+  ]
+}
