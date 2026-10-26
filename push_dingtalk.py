@@ -14,6 +14,7 @@ if hasattr(sys.stderr, "reconfigure"):
 
 ROOT = Path(__file__).resolve().parent
 CONFIG = ROOT / "push_config.json"
+GOLD_DATA = ROOT / "gold_data.json"
 CURRENCIES = {
     "USD": ("美元", 665.95), "EUR": ("欧元", 743.35),
     "GBP": ("英镑", 887.34), "CAD": ("加拿大元", 473.68),
@@ -81,6 +82,13 @@ def week_trends(code):
     return [date[5:] for date, _ in points], first, second
 
 
+def gold_snapshot():
+    history = json.loads(GOLD_DATA.read_text(encoding="utf-8")).get("history", [])
+    if not history or any(float(point["price"]) <= 0 for point in history):
+        raise RuntimeError("金价历史数据无效")
+    return history[-1], history[-7:]
+
+
 def sparkline(values):
     blocks = "▁▂▃▄▅▆▇█"
     low, high = min(values), max(values)
@@ -126,6 +134,7 @@ def chart_url(title, dates, series):
 def message(config, rows, live_boc):
     best, second = rows[:2]
     dates, first_trend, second_trend = week_trends(best["code"])
+    gold, gold_week = gold_snapshot()
     market_rate = best["foreign"] / float(config["amount_mxn"])
     cny_rate = best["cash"] / 100
     normalize = lambda values: [round(value / values[0] * 100, 4) for value in values]
@@ -136,10 +145,22 @@ def message(config, rows, live_boc):
         ])
     except Exception:
         summary_chart = None
+    try:
+        gold_chart = chart_url("工商银行如意金条购买参考价 · 近一周", [point["date"][5:] for point in gold_week], [
+            ("CNY/克", [float(point["price"]) for point in gold_week], "#b58a19"),
+        ])
+    except Exception:
+        gold_chart = None
     lines = [
         "## 每日汇率分段报告",
         f"> 更新时间：{datetime.now():%Y-%m-%d %H:%M}",
         f"> 本金：**{float(config['amount_mxn']):,.0f} MXN**",
+        "",
+        "### 工商银行如意金条｜50g",
+        f"- 当日购买参考价：**¥{float(gold['price']):,.2f}/克**（{gold['date']}）",
+        f"- 购买 50g 预计总价：**¥{float(gold['price']) * 50:,.2f}**",
+        trend_line("近一周金价", [point["date"][5:] for point in gold_week], [float(point["price"]) for point in gold_week], 2),
+        *([f"![近一周金价趋势]({gold_chart})"] if gold_chart else ["> 金价图片服务暂时不可用，以上字符趋势仍可正常参考。"]),
         "",
         f"### 第一段汇率｜MXN → {best['code']}",
         f"- 当前有效汇率：1 MXN = **{market_rate:.6f} {best['code']}**",

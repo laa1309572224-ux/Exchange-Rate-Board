@@ -17,6 +17,12 @@ jobs:
       - uses: actions/setup-python@v6
         with:
           python-version: "3.12"
+      - uses: actions/cache@v4
+        with:
+          path: gold_data.json
+          key: gold-${{ github.run_id }}
+          restore-keys: gold-
+      - run: python update_gold.py
       - run: python push_dingtalk.py
         env:
           DINGTALK_WEBHOOK: ${{ secrets.DINGTALK_WEBHOOK }}
