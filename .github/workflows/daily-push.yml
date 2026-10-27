@@ -1,8 +1,11 @@
 name: Daily DingTalk exchange-rate report
 
 on:
+  push:
+    branches: [main]
+    paths: [.github/workflows/daily-push.yml]
   schedule:
-    - cron: "0 8 * * *"
+    - cron: "7 8 * * *"
       timezone: America/Mexico_City
   workflow_dispatch:
 
