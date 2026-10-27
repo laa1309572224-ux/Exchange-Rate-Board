@@ -22,7 +22,9 @@ jobs:
           path: gold_data.json
           key: gold-${{ github.run_id }}
           restore-keys: gold-
-      - run: python update_gold.py
-      - run: python push_dingtalk.py
+      - name: Update today's gold price
+        run: python update_gold.py
+      - name: Update today's FX rates and send DingTalk report
+        run: python push_dingtalk.py
         env:
           DINGTALK_WEBHOOK: ${{ secrets.DINGTALK_WEBHOOK }}

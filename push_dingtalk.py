@@ -7,6 +7,7 @@ import time
 from datetime import datetime, timedelta
 from pathlib import Path
 from urllib.request import Request, urlopen
+from zoneinfo import ZoneInfo
 
 if hasattr(sys.stdout, "reconfigure"):
     sys.stdout.reconfigure(encoding="utf-8")
@@ -54,7 +55,7 @@ def boc_cash_rates():
 
 def calculate(config):
     market = get_json("https://open.er-api.com/v6/latest/MXN")
-    if market.get("result") != "success":
+    if market.get("result") != "success" or not market.get("rates", {}).get("CNY"):
         raise RuntimeError("在线汇率接口返回失败")
     try:
         cash = boc_cash_rates()
@@ -69,7 +70,10 @@ def calculate(config):
         cny = foreign * cash_rate / 100
         rows.append({"code": code, "name": name, "foreign": foreign, "cash": cash_rate, "spread": spread, "cny": cny})
     rows.sort(key=lambda row: row["cny"], reverse=True)
-    return rows, bool(cash)
+    mexico = ZoneInfo("America/Mexico_City")
+    fetched_at = datetime.now(mexico).strftime("%Y-%m-%d %H:%M")
+    source_at = datetime.fromtimestamp(market["time_last_update_unix"], mexico).strftime("%Y-%m-%d %H:%M")
+    return rows, bool(cash), fetched_at, source_at
 
 
 def week_trends(code):
@@ -132,7 +136,7 @@ def chart_url(title, dates, series):
     return result["url"]
 
 
-def message(config, rows, live_boc):
+def message(config, rows, live_boc, fetched_at, source_at):
     best, second = rows[:2]
     dates, first_trend, second_trend = week_trends(best["code"])
     gold, gold_week = gold_snapshot()
@@ -154,7 +158,8 @@ def message(config, rows, live_boc):
         gold_chart = None
     lines = [
         "## 每日汇率分段报告",
-        f"> 更新时间：{datetime.now():%Y-%m-%d %H:%M}",
+        f"> 当天汇率抓取：**{fetched_at}（墨西哥城）**",
+        f"> 市场汇率报价时间：{source_at}（墨西哥城）",
         f"> 本金：**{float(config['amount_mxn']):,.0f} MXN**",
         "",
         "### 工商银行如意金条｜50g",
@@ -206,8 +211,8 @@ def main(dry_run=False):
     config["webhook"] = os.environ.get("DINGTALK_WEBHOOK", config.get("webhook", ""))
     if not dry_run and not config["webhook"]:
         raise RuntimeError("未配置 DINGTALK_WEBHOOK")
-    rows, live_boc = calculate(config)
-    payload = message(config, rows, live_boc)
+    rows, live_boc, fetched_at, source_at = calculate(config)
+    payload = message(config, rows, live_boc, fetched_at, source_at)
     if dry_run:
         print(payload["markdown"]["text"])
         return
