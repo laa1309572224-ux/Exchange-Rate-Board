@@ -3,6 +3,7 @@ import json
 import os
 import re
 import sys
+import time
 from datetime import datetime, timedelta
 from pathlib import Path
 from urllib.request import Request, urlopen
@@ -190,6 +191,16 @@ def message(config, rows, live_boc):
     return {"msgtype": "markdown", "markdown": {"title": "每日汇率最优结果", "text": "\n".join(lines)}}
 
 
+def send_dingtalk(webhook, payload, attempts=3):
+    for attempt in range(1, attempts + 1):
+        result = get_json(webhook, payload)
+        if result.get("errcode") == 0:
+            return
+        if attempt < attempts:
+            time.sleep(attempt * 5)
+    raise RuntimeError(f"钉钉推送失败：{result.get('errmsg', result)}")
+
+
 def main(dry_run=False):
     config = json.loads(CONFIG.read_text(encoding="utf-8")) if CONFIG.exists() else DEFAULT_CONFIG.copy()
     config["webhook"] = os.environ.get("DINGTALK_WEBHOOK", config.get("webhook", ""))
@@ -200,9 +211,7 @@ def main(dry_run=False):
     if dry_run:
         print(payload["markdown"]["text"])
         return
-    result = get_json(config["webhook"], payload)
-    if result.get("errcode") != 0:
-        raise RuntimeError(f"钉钉推送失败：{result.get('errmsg', result)}")
+    send_dingtalk(config["webhook"], payload)
     print("钉钉汇率推送成功")
 
 
